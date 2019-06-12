@@ -1,0 +1,36 @@
+$path = "the path to your library"
+$siteUrl =  "your artifactory path"
+ $user = "user"
+ $pass = "password"
+ # incript credentials
+ $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $user,$pass)))
+try {
+
+  # gets all the files (-File) in the directory
+  $files = Get-ChildItem -Path $path –File
+
+  #iterate thru each file
+  foreach($file in $files) 
+  { 
+      $url = $siteUrl + $file
+      $filePath = $path + $file
+
+      #upload the file to the server using default credentials from the
+      #current session
+      $result = Invoke-WebRequest -Uri $url -Headers @{Authorization = "Basic $base64AuthInfo"} -InFile $filePath -Method PUT
+               
+
+      #if the request status code is successful, we delete the files
+      #else write an error message
+      if($result.statuscode -ne 200){       
+                write-host "Failed to upload" $filePath $result.statuscode
+
+      }
+  }
+}
+catch {
+  write-host "Exception was raised: $PSItem" #psitem is the error object
+}
+
+
+
